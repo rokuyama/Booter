@@ -1,0 +1,115 @@
+                                        Checklist which Nigel uses to release a Booter
+
+
+             Hacking:
+
+0) Make all code changes. Test thoroughly.
+    If updating dialog layout, do the final ResEditing on System 7, as the fonts and window borders are a bit different under OS 8 or 9.
+    Check with the port maintainer, Scott Reynolds, about any features he might need added. 
+
+1) In Think C, Project -> Remove Objects
+
+2) In CodeWarrior, Project -> Remove Binaries
+
+3) Trash 'Booter, Think C v7.rsrc' and ‘BSD/Mac68k Booter.SYM’
+
+4) If the binary was linked via Think C, Use Finder ‘Get Info’ to change preferred memory allocation to 5120
+
+
+
+             In the master documentation folder:
+
+5) Update ChangeLog.txt
+    • Use File dates in Finder to locate modified files
+    • Use a diff program to analyse changes
+    • Produce a summary in ChangeLog.txt for each changed file
+
+6) If this version is going to be the new recommended version, (i.e. if no external testing is required), update BOOTER.README.txt
+
+7) If outstanding fixes/enhancements have been resolved, update TO-DO.txt
+
+8) Produce new screen snapshots if the User Interface has changed
+    • Under MacOS 7 if possible
+    • Save them as Booting.PICT, Machines.PICT, Monitors.PICT, Preferences.PICT and Serial.PICT
+    • Convert them to Booting.GIF et cetera, using something like GIFConverter
+
+9) Edit BooterManual.html ’till satisfied. View with several browsers. Remember to update
+    the version number
+
+10) Create a SimpleText version of the BooterManual:
+      • In NetScape, viewing BooterManual.html, save as Text. Open this file in an editor which allows picture insertion, and saving as SimpleText          (e.g. ClarisWorks with ‘SimpleText XTND’. If using OS X, open BooterManual.html in TextEdit, select all, and paste into a blank ClarisWorks document)
+      • Select All, change Font to Times 14
+      • Select Main Heading, change font to Helvetica 24, change HTML to SimpleText, delete
+         leading spaces
+      • Change other headings to left justified Helvetiva 18 (if centred) and left justified
+         Helvetica 14 (if not centred)
+      • Change example console output in ‘Quick Overview’ section to Font Monaco
+      • Insert and centre the 6 pictures
+      • Change ‘*’ to ‘•’
+      • Change most of the ‘\p          ’ (paragraph + 10 spaces) to ‘ ’, to create joined paragraphs
+         of bulletted points
+      • Ditto for paragraph + 5 spaces
+      • Ditto for paragraph with no spaces
+      • Make <DT> heading points bold in the ‘Boot Options, Ad Nauseam’ section
+      • Make <DT> heading points italic in the ‘Common Boot Errors’ section
+      • Make ‘Ad Nauseam’ and all ‘et cetera’ italic (if not already)
+      • Change ---------------------------------------------------------------------------- to _________________________________________________________________________
+      • Save as SimpleText BooterManual.stxt
+
+
+             Producing the packages:
+
+11) Create a folder called booter-manual. Copy latest versions of:
+      BooterManual.html
+      Booting.GIF
+      ChangeLog.txt
+      icon.GIF
+      icon2.GIF
+      Monitors.GIF
+      Preferences.GIF
+      Serial.GIF
+      TO-DO.txt
+
+12) Create a tar file Booter-HTML-manual-N.tar, where N is the version number. File should
+      have relative paths like ‘booter-manual/icon.GIF’. Only add the data forks of the files.
+
+13) Create a new Folder for the Booter (e.g. Booter1.11.2)
+      • Move the binary into it
+      • Copy BooterManual.stxt into it
+      • Compress the folder into a self-extracting archive (e.g. Booter1.11.2.sea)
+
+14) There is a folder in the source directory called ‘ Documentation’. Update with latest
+      versions of:
+          BooterManual.html
+          BOOTER.README.txt
+          Booting.GIF
+          ChangeLog.txt
+          icon.GIF
+          icon2.GIF
+          Machine.GIF
+          Monitors.GIF
+          Preferences.GIF
+          Release Checklist
+          Serial.GIF
+          TO-DO.txt
+
+15) Compress the source directory into a self-extracting archive, ‘BooterVersion-src.sea’,
+      where Version is something like 1.11.2
+
+
+             Distribution:
+
+16) FTP these 4 files (or similar) to /pub/incoming on ftp.netbsd.org and
+      /pub/NetBSD/contrib/incoming on ftp.MacBSD.com:
+      	  BOOTER.README.txt
+          Booter1.11.2-src.sea.hqx
+  	      Booter1.11.2.sea.hqx
+    	    Booter-HTML-manual-7.tar
+
+17) Send an email to briggs@macbsd.com, scottr@og.org, asking them to get these files and
+      put them up on MacBSD and NetBSD. Also ask them to untar the new Booter Manual into
+      their WWW server
+
+18) After a few days for the packages to distribute to the mirrors, publish the new version's
+      existance on the port-mac68k mailing list. Mail downsj@downsj.com (the OpenBSD
+      maintainer) also.

@@ -1,0 +1,230 @@
+                       BSD/mac68k Booter Change Log
+                       ============================
+
+This document details recent changes to the Booter.
+To save space, changes to older versions of the Booter
+(i.e. up to 1.11.5) are now listed in the file ChangeLog-Old.txt
+
+====================================================================================
+* Version 2.0.0a1 (Nigel Pearson, July 12, 2001)
+Re-write for initial ELF support, and to use more NetBSD header files.
+Won't compile on Think C unless many #include <> are changed to #include ""
+
+kernel_parse.c             : New symbol & string processing code, and a new function
+                             kernel_parse(), which is similar to NetBSD's loadfile()
+loadfile_patched.c         : Slight modification to NetBSD version
+loadfile.h                 : Unmodified, from NetBSD distribution's libsa
+MacBSD.h                   : Added some Unix types, new unum, changed prototypes
+machine/loadfile_machdep.h : Some hacks to get loadfile.c to compile cleanly
+NetBSD includes            : Mostly unmodified headers from the kernel source dist.
+Output.c                   : Added new debug function, hex_file_dump()
+partnames.h                : Interesting partition names stolen from part.h
+Prefs.c                    : New (automatic) version detection (still unstable)
+read_part.h, read_ufs.c    : NetBSD headers, structures, constants
+ufs_test.c                 : Header & variable changes, removed symbol, string &
+                             a.out parsing code. Automatic compiler function jump
+                             table detection. Copies smaller memory area containing
+                             copycode
+videocard.c                : Changes for new symbol/string processing code
+a.out.h, dinode.h, dir.h,
+exec.h, fs.h, lifhdr.h,
+machine_ansi.h,
+machine_types.h, MacUFS.h,
+param.h, part.h, types.h   : Removed, replaced by real NetBSD header files
+====================================================================================
+* Version 2.0.0a2 (Nigel Pearson, July 22, 2001)
+Now locates ELF symbol and string tables using post loadfile() processing,
+and sets some extra environment variables for the kernel to access
+
+kernel_parse.c             : Now iterates through ELF sections,
+                             new functions to locate symbols & strings
+loadfile_patched.c         : Deleted
+loadfile.c                 : Unmodified, from NetBSD distribution's libsa
+MacBSD.h                   : New enum for kernel type, extra prototypes
+machine/loadfile_machdep.c : Load headers from kernels, correct ALIGNENTRY()
+read_part.c read_ufs.c     : Removed un-needed code & includes
+ufs_test.c                 : Set MARK_START, MARK_SYM & MARK_END env. variables,
+                             removed find_sym(), lookup_symbol() and set_long_val()
+====================================================================================
+* Version 2.0.0a3 (Joe Laffey, Nigel Pearson, November, 2001)
+Added code (Joe's suggestion) to prevent removable disks from being ejected.
+Worked around problem with loading kernel from UFS filesystem.
+Changed some debug output to different levels
+
+boot_vfs.c     : Added boot_rewind()
+gzip.c         : Bug fix in gzboot_read() (re-entrancy bug after encountering EOF)
+kernel_parse.c : Changed a few messages, added 'struct nlist' and compatibility
+                 with extra magic number types
+MacBSD.h       : Added noEject & boot_rewind() stuff, deleted 'struct nlist' stuff 
+machdep.c      : Removed erroneous return in CheckHardware()
+Machine.c      : Added noEject stuff
+main.c         : VM alert now will not appear if on PPC machine (for testing)
+read_disk.c    : Added detail to, and changed the level of, some debug output
+read_macos.c   : Added (to) debug messages, corrected return type of macos_read()
+read_ufs.c     : Added some debug, hack to fix UFS booting problem
+                 (disabled caching in read_bsd_block() and ufs_read() )
+ufs_test.c     : Boot on sdOnUnmount instead of sdOnRestart (to not eject disks),
+                 Search for length of copycode() instead of hard coding lengthm
+====================================================================================
+* Version 2.0.0a4 (Christian Groessler, Nigel Pearson, December 19, 2001)
+Added Gzip routines back in (they were accidentally omitted in 2.0.0a3).
+Attempt at using Christian's code to process disklabelled disks.
+
+MacBSD.h        : Uncommented gzboot_() defines
+read_part.c     : New routines dkcksum() and get_disklabel_sector(),
+                  moved MacOS partition searching logic from get_part_sector()
+                  into new locate_partition()
+sys/disklabel.h : Added from NetBSD distribution, used by new disklabel routines
+====================================================================================
+* Version 2.0.0a5 (Nigel Pearson, December 27, 2001)
+Second attempt at disklabel processing
+
+read_part.c : Corrected/added debug messages
+ufs_test.c  : Renamed to copy_and_boot.c
+====================================================================================
+* Version 2.0.0a6 (Nigel Pearson, December 29, 2001)
+Working disklabel processing
+
+read_part.c : More debug messages, corrected defective slice selection logic
+====================================================================================
+* Version 2.0.0a7 (Nigel Pearson, January 3, 2002)
+IDE fix
+
+copy_and_boot.c : Removed some old debug code, disable the killing
+                  of running programs when running on PPC machines
+read_disk.c     : Continue boot if kATAMgrGetDrvConfiguration query fails,
+                  some extra debug messages
+====================================================================================
+* Version 2.0.0a8 (Nigel Pearson, February 15, 2002)
+IDE debugging hack
+
+read_ufs.c : Continue if fs->fs_magic is unexpected
+====================================================================================
+* Version 2.0.0a9 (Nigel Pearson, February 19, 2002)
+IDE fix
+
+read_disk.c : Add loop and buffer to read multiple SECTOR_SIZE blocks
+read_ufs.c  : Reverted fs_magic hack
+====================================================================================
+* Version 2.0.0a10 (Nigel Pearson, March 14, 2002)
+Proper fix for UFS booting problem from 2.0.0a2 (removed hack from 2.0.0a3),
+allow specification of ATA channel, now passes something like ATA_ROOT_DEV=0,0
+to the kernel
+
+copy_and_boot.c : Replaced lowmem protos with #include. New setenvstr(). If root is
+                  meant to be an ATA device, sets ATA_ROOT_DEV and not ROOT_SCSI_ID
+Dialogs.c       : Added ATA channel & device stuff
+kernel_parse.c  : Fixed array-overrun bug
+lowmem.c        : Replaced prototypes with #include
+lowmem.h        : lowmem.c prototypes
+MacBSD.h        : Added ATA channel into prefs, changed some machdep protos,
+                  re-ordered Booting dialog items & added new ATA ones
+machdep.c       : Changed some return types to bool or short
+main.c          : Set ATA buss/channel from new prefs field, output tidyup
+read_disk.c     : Only output ATA config error once
+read_ufs.c      : Re-enabled block read caching, changed a debug message's level
+trapavail.c     : Obsoleted (duplicated by me in machdep.c at 1.11.5a3)
+====================================================================================
+* Version 2.0.0b11 (Nigel Pearson, July 22, 2002)
+  Version 2.0.0    (August 19, 2002)
+Use Unix partition-identity flags, removed un-needed CScript files
+
+read_part.c : Check bzbMagic and friends
+====================================================================================
+* Version 2.0.1a1 (Hauke Fath, Nigel Pearson, March 19, 2002)
+Added netboot
+
+boot_vfs.c          : Added NetBoot kernloc and calls to bootp_read(), et c.
+BSD_Mac_Booter.rsrc : Re-ordered dialog items
+copy_and_boot.c     : Allow printenv to dump string values as well as longs
+Dialogs.c           : Added netboot radio button and preference display & setting
+MacBSD.h            : Re-ordered dialog items, added NetBoot kernloc,
+                      added new prototypes from read_bootp.c
+main.c              : Added netBoot kernloc
+netbootlib/*        : New files by Hauke and Apple
+read_bootp.c        : New file by Hauke, uses netbootlib
+====================================================================================
+* Version 2.0.1a2 (Nigel Pearson, August 19, 2002)
+Some minor netboot improvements, removed un-needed CScript files
+
+BSD_Mac_Booter.rsrc : Added Hauke's name to About dialog
+main.c              : Dummy filename string for netboot errors
+netbootlib/bootp.c  : Better debug when MAC address not available
+netbootlib/udp.c    : Debug - output IP address if found, minor tidyup
+read_bootp.c        : Correctly deal with errors, debug message changes
+read_part.c         : Check bzbMagic and friends
+====================================================================================
+* Version 2.0.1a3 (Nigel Pearson, September 18, 2002)
+New 'Open and Boot' menu item, alert for kernels in TAR archives,
+new 'Disable AppleTalk' function, UI tweaks
+
+BSD_Mac_Booter.rsrc        : New menu item, TAR warning alert, disable AppleTalk
+                             button (Machine dialog), label changes in Booting
+                             dialog (dhcp -> DHCP, BOOTP -> BootP)
+copy_and_boot.c            : New kernel_is_TAR(), relocated modem port opening,
+                             added code to try and disable AppleTalk
+kernel_parse.c             : Added ability to skip TAR headers
+MacBSD.h                   : New alert and menu item IDs, DisableATalk pref field
+                             and kernel_is_TAR() prototype
+Machine.c                  : UI interaction, prefs loading & saving for disableATalk
+machine/loadfile_machdep.h : Removed confusing ALIGNENTRY comment line
+main.c                     : New 'Open and Boot' menu code, relocated modem port
+                             opening code, added TAR alert
+====================================================================================
+* Version 2.0.1a4 (Nigel Pearson, September 25, 2002)
+Compilation on MPW, added missing CodeWarrior project file, put FLAGS back into env
+
+Allegro_finale.c appkill.h Dialogs.c gzip.c machdep.c Machine.c main.c Monitors.c
+Prefs.c: read_disk.c read_macos.c read_part.c read_ufs.c RequestVideo.c Startup.c
+videocard.c            : Removed unused includes, added some needed by MPW, moved
+                         MacBSD.h earlier, a few universal interface conditionals,
+                         added pragmas to eliminate MPW unused parameter warnings
+boot_asm_glue.a        : New, MPW assembler code
+boot_asm_glue.c        : New, CodeWarrior and Think C assembler code
+boot_asm_glue.h        : New, interface between copy_and_boot.c and assembler
+BSDprefix.h            : Removed u_long typedef, added __int8_t and __int16_t
+compiler_environment.h : General compiler-specific stuff
+copy_and_boot.c        : Added FLAGS back into env (had been missing since v2),
+                         include changes, removed some statics & assembly stuff
+                         (now in boot_asm_glue.* and compiler_environment.h)
+DialogMgr.h            : Different argument for Delay() on MPW
+kernel_parse.c         : Extra #defines to prevent some type clashes on MPW
+lowmem.c               : Moved some stuff into compiler_environment.h
+lowmem_proto.h         : Renamed from lowmem.h, which clashed with LowMem.h
+MacBSD.h               : bool type change from int to Boolean, removed compiler
+                         specific #if/#defines (now in compiler_environment.h),
+                         setenv() becomes setenvl()
+machine/types.h        : Updated from v1.12 to v1.13 (bit type declaration change)
+Makefile               : MPW make file, calls Makefiles in netbootlib & zlib
+MPW                    : New directory for MPW-specific includes & object files
+MPW/unistd.h           : Needed for MPW, which doesn't have it
+Output.c               : Change of newline sequence in Output() for MPW
+Window.c               : OLDROUTINENAMES and include changes for MPW
+zlib/zlib.lib.cw9.µ    : Added back (was missing since 2.0.1a2)
+====================================================================================
+* Version 2.0.1a5 (Roger Bedell, Nigel Pearson, October 10, 2002)
+Corrected small partition-selection bug, wrong versions of some files,
+removed all Think C files and code, simplified assembler stuff
+
+Allegro_finale.c ATA.h compiler_environment.h copy_and_boot.c DialogMgr.h
+Dialogs.c gzip.c lowmem.c machdep.c Monitors.c Prefs.c RequestVideo.c
+zlib/zconf.h               : Removed all Think C #ifdef stuff
+boot_asm_glue.*            : Removed some assembler macros
+                             (not needed now - only CodeWarrior asm is supported)
+BSDprefix.h kernel_parse.c : Changed/removed a few comments
+netbootlib/bootp.c udp.c   : Debug change from 2.0.1a2 back in (was missing in a4)
+netbootlib/tftp.c          : Debug change from 2.0.1a1 back in (was missing in a4)
+read_part.c                : In locate_partition() more debug, and start at part. 0
+====================================================================================
+* Version 2.0.1a6 (Nigel Pearson, April 1, 2004)
+Corrected exit from partition-selection loop, added CodeWarrior 11 compilation,
+warning when booting with stripped kernel
+
+compiler_environment.h       : New CW11 symbol
+DialogMgr.h machdep.c main.c : Added ConditionalMacros.h
+gzip.c                       : #undef of EOF
+kernel_parse.c               : Extra defines on CW11 to prevent clash in stat.c,
+                               check for missing kernel symbols (stripped kernel),
+                               small hack to cope with tarred ELF kernel files.
+read_part.c                  : Tidyup of locate_partition(), and added a break
+====================================================================================

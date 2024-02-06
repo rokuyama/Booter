@@ -1,0 +1,19 @@
+• The file BSDprefix.h defines some stuff that, for some reason, CodeWarrior 9 needs
+  defined to compile the NetBSD header files. I guess most of them are already
+  defined by GCC?
+
+• Include files under this directory have had a prefix added to match the directory
+  they would normally be #included from. This was necessary because Codewarrior and
+  Think C don’t understand ‘/’ as a directory seperator (They use MacOS’s ‘:’).
+
+• Files in the directory ‘Fabricated’ are empty files that seem to add nothing that
+  the code I am compiling needs
+
+• Files in the directory ‘Renamed’ are from /usr/src/sys/arch/m68k/include (which
+  would normally be installed in /usr/include/m68k).
+
+  On NetBSD/mac68k, most of these files are never #included directly. The files in
+  /usr/include/machine usually just do a #include of the equivalent m68k file, so
+  for simplicity I have renamed them
+
+• Files in the directory ‘Unchanged’ are straight from the src tarball /usr/src/sys/

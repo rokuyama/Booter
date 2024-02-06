@@ -1,0 +1,120 @@
+*******************************************************************
+* Assembler code "functions" in standalone assembler,
+* instead of the inline assembler which CodeWarrior and Think C use
+*
+* Extracted from ufs_test.c (now copy_and_boot.c) by Hauke Fath
+*******************************************************************
+
+		CASE		ON
+		MACHINE		MC68020
+
+*******************************************************************
+*
+* This code is moved to the beginning of the loaded kernel image,
+* and is the last thing called before we hit locore.
+*
+* Invariably, it is what is pointed to by harry.
+*
+* Secret BCDL White board codes !!!
+*	D4 
+*	(0)(1)- processor
+*	(2)(6)- machine
+*	(7)(11)- ram amount in megs
+*	(16)- serial boot
+*	(17)- greybars
+*	(18)- single user
+*	A4 - width (low 16) height  (hi 16)
+*	D6 - boot drive and part
+*	D5 - video address
+*	A3 - rowbytes
+*	A2 - video depth
+*	A5 - reserved for bus faults, core dumps, and dog shooting
+*	     NEVER EVER PUT STUFF in a5
+*
+*******************************************************************
+
+		SEG			'Booter'		
+		
+copycode	PROC	EXPORT				; case sensitive
+
+copycode_sf	RECORD	{A6Link},DECR		; build a stack frame record
+ParamBegin	EQU	*						; start parameters after this point
+scsi_id		DS.L	1					; SCSI ID of boot disk
+screenbase	DS.L	1					; pointer to screen buffer base
+entry		DS.L	1					; pointer to kernel entry point
+len			DS.L	1					; kernel image length
+to			DS.L	1					; pointer to end of kernel image
+from		DS.L	1					; pointer to start of kernel image
+ParamSize	EQU	ParamBegin-*			; size of all the passed parameters
+RetAddr 	DS.L	1					; place holder for return address
+A6Link		DS.L	1					; place holder for A6 link
+LocalSize	EQU 	*					; size of all the local variables
+		ENDR
+
+		IMPORT	SingleUser:DATA
+		IMPORT	rowbytes:DATA
+		IMPORT	screendepth:DATA
+		IMPORT	flags:DATA
+		IMPORT	dimensions:DATA
+		IMPORT	envbuf:DATA
+
+		; Don't bother to save permanent registers -- we're 
+		; never going back to the caller
+		WITH	copycode_sf				; cover our local stack frame
+		LINK	A6,#LocalSize			; allocate our local stack frame
+		
+		MOVE	SR,D0					; Disable interrupts.
+		ORI.W	#$0700,D0
+		MOVE	D0,SR
+		
+		MOVE.L	from(A6),A0				; Copy.
+		MOVE.L	to(A6),A1
+		MOVE.L	len(A6),D0
+@again:
+		MOVE.L	(A0)+, (A1)+
+		SUBQ.L	#1,D0
+		BNE		@again
+
+		; Load essential variables into registers the kernel can read.
+		MOVE.L  scsi_id(A6),D6			; Boot Device Scsi Id
+		MOVE.L	SingleUser,D7			; Boot Env
+		MOVE.L	screenbase(A6),D5
+		MOVE.L  rowbytes,A3				; rowbytes global
+		MOVE.L	screendepth,A2			; bitdepth of screen
+		MOVE.L	flags,D4				; processor, machine, etc stuff
+		MOVE.L	dimensions,A4
+
+		MOVE.L	envbuf,A1
+		SUB.L	from(A6),A1
+
+		MOVE.L	entry(A6),A0			; Branch to kernel code!
+		UNLK	A6						; throw away the scratch stack stuff
+		JMP		(A0)
+
+		RTS
+		RTS
+
+		ENDWITH
+		ENDP
+		
+		DC.B	'copycode'
+
+
+_HWPriv EQU $A198	
+
+DisableExtCache	PROC
+		MOVEQ	#$05,	D0
+		DC.W	_HWPriv
+		RTS
+
+		ENDP
+
+
+FlushExtCache	PROC
+		MOVEQ	#$06,	D0
+		DC.W	_HWPriv
+		RTS
+
+		ENDP
+		
+		END
