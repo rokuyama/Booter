@@ -235,6 +235,52 @@ SetupEnv(void)
 	setenvl ("MARK_END",	kVec[MARK_END]   - buff_offset);
 }
 
+/*
+ * Halt AV DMA before copycode() in order to avoid kernel image
+ * corruption by DMA; see port-mac68k/54942.
+ */
+static void
+halt_avdma (void)
+{
+	int i;
+
+/* <mac68k/cpu.h> */
+
+#define MACH_MACC660AV	60
+#define MACH_MACQ840AV	78
+
+	switch (machineid) {
+	case MACH_MACQ840AV:
+	case MACH_MACC660AV:
+		break;
+	default:
+		return;
+	}
+
+/* <mac68k/psc.h> */
+
+#define PSC_BASE	0x50f31000
+
+#define PSC_SINGER_CTL	0x0200
+#define PSC_CTLBASE	0x0c00
+#define PSC_CMDBASE	0x1008
+
+#define PSC_SET1	0x10
+
+#define PSC_REG2(reg)	(*(volatile u_short *)(PSC_BASE + (reg)))
+
+	/* Taken from Penguin booter */
+	PSC_REG2(PSC_SINGER_CTL) = 0;
+
+	/* mac68k/psc.c:psc_kill_dma() */
+	for (i = 0; i < 9; i++) {
+		PSC_REG2(PSC_CTLBASE + (i << 4)) = 0x8800;
+		PSC_REG2(PSC_CTLBASE + (i << 4)) = 0x1000;
+		PSC_REG2(PSC_CMDBASE + (i << 5)) = 0x1100;
+		PSC_REG2(PSC_CMDBASE + (i << 5) + PSC_SET1) = 0x1100;
+	}
+}
+
 
 /*
  * This shutdown manager procedure sets up the kernel "environment" and
@@ -254,6 +300,9 @@ shutdownProc (void)
 
 	/* Disable interrupts. */
 	disable_intr();
+
+	/* Halt AV DMA. */
+	halt_avdma();
 
 	/* Call copycode-in-the-kernel. */
 	(*harry)(boot_buffer, boot_load, boot_length, boot_entry,
