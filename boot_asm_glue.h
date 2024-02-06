@@ -17,6 +17,10 @@ typedef void (*copycode_entry)	(void *from, void *to, unsigned long len,
 								 void *entry, void *screenbase,
 													unsigned long scsi_id);
 
+#if defined(__MWERKS__)
+	asm
+#endif
+		void			disable_intr(void);
 
 /* These globals are defined in boot_asm_glue and accessed by copy_and_boot.c */
 

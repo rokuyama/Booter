@@ -54,11 +54,6 @@ copycode (void *from, void *to, unsigned long len,
 
 /* CW9 assembler requires this to get at function parameters. */
 	FRALLOC
-
-	/* Disable interrupts. */
-	MOVE	SR,			D0
-	ORI.W	#0x0700,	D0
-	MOVE	D0, 		SR
 		
 	/* Copy. */
 	MOVE.L	from,   A0
@@ -99,3 +94,10 @@ copycode (void *from, void *to, unsigned long len,
 }
 
 
+asm void
+disable_intr(void)
+{
+	MOVE	SR,			D0
+	ORI.W	#0x0700,	D0
+	MOVE	D0, 		SR
+}

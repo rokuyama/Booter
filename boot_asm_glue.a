@@ -63,10 +63,6 @@ LocalSize	EQU 	*					; size of all the local variables
 		WITH	copycode_sf				; cover our local stack frame
 		LINK	A6,#LocalSize			; allocate our local stack frame
 		
-		MOVE	SR,D0					; Disable interrupts.
-		ORI.W	#$0700,D0
-		MOVE	D0,SR
-		
 		MOVE.L	from(A6),A0				; Copy.
 		MOVE.L	to(A6),A1
 		MOVE.L	len(A6),D0
@@ -113,6 +109,14 @@ DisableExtCache	PROC
 FlushExtCache	PROC
 		MOVEQ	#$06,	D0
 		DC.W	_HWPriv
+		RTS
+
+		ENDP
+
+disable_intr	PROC	EXPORT
+		MOVE	SR,D0					; Disable interrupts.
+		ORI.W	#$0700,D0
+		MOVE	D0,SR
 		RTS
 
 		ENDP

@@ -252,6 +252,9 @@ shutdownProc (void)
 	/* Turn off caches - 1.9.2 */
 	TurnCachesOff();
 
+	/* Disable interrupts. */
+	disable_intr();
+
 	/* Call copycode-in-the-kernel. */
 	(*harry)(boot_buffer, boot_load, boot_length, boot_entry,
 		boot_screen_base, boot_scsi_id);
